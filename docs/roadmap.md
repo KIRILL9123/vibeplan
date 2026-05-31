@@ -45,10 +45,11 @@
 - [x] `vibeplan web` — start Web UI dashboard
 - [x] Team mode: `vibeplan share` + `vibeplan import` — portable share files
 - [x] GitHub Issues: `vibeplan issue` — generate/preview/publish issues from plan
+- [x] Benchmark mode: `vibeplan benchmark <task>` — compare token spend with vs without vibeplan
 
 ## 📋 Backlog
-- [ ] Benchmark mode: compare token spend with vs without vibeplan
 - [ ] Plugin system for custom question templates
+- [ ] Plan history and analytics
 - [ ] Plan history and analytics
 - [ ] `vibeplan config` — get/set config values from CLI
 - [ ] `--model` flag for adapter model selection

@@ -18,6 +18,7 @@ from vibeplan.mcp_server import run_mcp_server
 from vibeplan.web_ui import run_web_server
 from vibeplan.team import export_share, import_shared
 from vibeplan.github import format_github_issue, publish_issue
+from vibeplan.benchmark import run_baseline, collect_actual, save_baseline, load_baseline, format_report
 
 app = typer.Typer(help="vibeplan — Plan first. Ship faster. Burn fewer tokens.")
 console = Console()
@@ -362,6 +363,84 @@ def issue(
         body = format_github_issue(project_dir)
         console.print(body)
         console.print("\n[dim]Preview above. Use --publish to create the issue on GitHub.[/]")
+
+
+@app.command()
+def benchmark(
+    task: str = typer.Argument(None, help="Task description to benchmark"),
+    project_dir: Path = typer.Option(Path("."), "--project-dir", "-d", help="Project directory"),
+    agent: str = typer.Option(None, "--agent", "-a", help="Agent adapter for baseline run"),
+) -> None:
+    """Benchmark token savings: compare with vs without vibeplan.
+
+    If TASK is provided: runs baseline (raw prompt through agent), creates plan, saves result.
+    If TASK is omitted: shows report from saved baseline vs actual plan execution.
+    """
+    console.print(Panel("[bold]vibeplan benchmark[/]", border_style="blue"))
+
+    if task:
+        if not agent:
+            config = load_config(project_dir)
+            agent = config.get("agent")
+        if not agent:
+            console.print("[red]No agent configured. Set one with --agent or in .vibeplan/config.json[/]")
+            console.print("[dim]Available: " + ", ".join(list_adapters()) + "[/]")
+            raise typer.Exit(1)
+
+        config = load_config(project_dir)
+        config["agent"] = agent
+        save_config(project_dir, config)
+
+        console.print("[yellow]Running baseline (without vibeplan)...[/]")
+        baseline = run_baseline(task, project_dir)
+        if baseline:
+            save_baseline(project_dir, baseline)
+            console.print(f"[green]Baseline done: {baseline.tokens:,} tokens (single pass, no structure)[/]")
+        else:
+            console.print("[red]Baseline run failed. Make sure '" + agent + "' is installed and accessible.[/]")
+            console.print("[dim]To configure: vibeplan init --agent " + agent + "[/]")
+            raise typer.Exit(1)
+
+        ensure_git = ensure_git_repo(project_dir)
+        if not ensure_git:
+            console.print("[yellow]No git repo. Run 'git init' for checkpoint support.[/]")
+
+        from vibeplan.questions import ask_questions
+        answers = ask_questions(task)
+        if not answers:
+            raise typer.Exit(0)
+
+        from vibeplan.llm import resolve_llm_config
+        llm_config = resolve_llm_config(config)
+        from vibeplan.planner import generate_plan
+        plan_path = generate_plan(answers, project_dir, llm_config)
+        console.print(f"\n[bold green]Plan created:[/] {plan_path}")
+
+        if llm_config.provider:
+            console.print("[dim]Plan generated with " + llm_config.provider + "/" + llm_config.model + "[/]")
+
+    actual = collect_actual(project_dir)
+    baseline = load_baseline(project_dir) if not task else baseline
+
+    if not baseline and not actual:
+        console.print("[yellow]No benchmark data yet.[/]")
+        console.print("[dim]Run 'vibeplan benchmark <task> --agent <name>' to start.[/]")
+        return
+
+    task_name = task or ""
+    if not task_name and actual:
+        data = load_plan(project_dir)
+        task_name = data.get("original_prompt", "")
+    if not task_name and baseline:
+        task_name = "benchmark"
+
+    report = format_report(task_name, baseline, actual)
+    console.print(report)
+
+    if actual and actual.steps > 0:
+        console.print(f"\n[dim]Steps executed: {actual.steps} (run 'vibeplan run' to complete any remaining)[/]")
+    if baseline and not actual:
+        console.print("\n[dim]After running 'vibeplan run', run 'vibeplan benchmark' again to see the comparison.[/]")
 
 
 if __name__ == "__main__":

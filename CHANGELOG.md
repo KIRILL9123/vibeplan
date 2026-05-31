@@ -1,6 +1,12 @@
 # Changelog
 
-## v0.5.0 — 2026-05-31
+## v0.5.0 — 2026-05-31 (current)
+
+### Added
+- Benchmark mode: `vibeplan benchmark <task> --agent <name>` — runs baseline (raw agent) + creates plan, then compares token spend
+- Benchmark report: `vibeplan benchmark` (no args) — shows saved baseline vs actual execution
+- `benchmark.py` module — `run_baseline()`, `collect_actual()`, `format_report()`
+- 11 new tests for benchmark module
 
 ### Added
 - MCP server: stdio JSON-RPC with 6 tools (init, status, next_prompt, mark_done, rollback, export)
