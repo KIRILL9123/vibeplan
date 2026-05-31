@@ -1,6 +1,6 @@
 # vibeplan Roadmap
 
-## v0.1.0 — MVP (current)
+## ✅ v0.1.0 — MVP
 - [x] Interactive questionnaire (5 clarifying questions)
 - [x] Template-based plan generation (feature / bugfix / refactor / setup)
 - [x] Token budget allocation per step (weighted by complexity)
@@ -10,7 +10,7 @@
 - [x] CLI commands: init, run, status
 - [x] Tests + GitHub Actions CI
 
-## v0.2.0 — Better UX
+## ✅ v0.2.0 — Better UX
 - [x] `vibeplan resume` — continue paused session
 - [x] `vibeplan rollback <step>` — rollback to specific step
 - [x] `vibeplan doctor` — check prerequisites (git, config)
@@ -18,7 +18,7 @@
 - [x] Per-step prompt template generation (ready to paste into agent)
 - [x] Config file support: `.vibeplan/config.json`
 
-## v0.3.0 — Agent Adapters (current)
+## ✅ v0.3.0 — Agent Adapters
 - [x] Base adapter interface + registry
 - [x] BaseCliAdapter — shared CLI logic (arg/stdin/file pass methods)
 - [x] Token usage parsing from agent output
@@ -29,7 +29,7 @@
 - [x] Antigravity adapter — `antigravity`
 - [x] Claude Code adapter — `claude`
 
-## v0.4.0 — LLM-Powered Planner (current)
+## ✅ v0.4.0 — LLM-Powered Planner
 - [x] LLM client module — OpenRouter, Ollama, OpenAI-compatible (stdlib only)
 - [x] LLM-based plan generation via `--llm provider` flag on init
 - [x] JSON response parsing with code fence / markdown fallback
@@ -38,7 +38,7 @@
 - [x] LLM config in `.vibeplan/config.json` + env var support
 - [x] Doctor check for LLM config / API key
 
-## v0.5.0 — Advanced Features (current)
+## ✅ v0.5.0 — Advanced Features
 - [x] MCP server — stdio JSON-RPC with 6 tools (init, status, next_prompt, mark_done, rollback, export)
 - [x] Web UI — built-in HTTP server with plan visualization (progress, budget, steps, checkpoints)
 - [x] `vibeplan mcp` — start MCP server for AI agent integration
@@ -46,8 +46,10 @@
 - [x] Team mode: `vibeplan share` + `vibeplan import` — portable share files
 - [x] GitHub Issues: `vibeplan issue` — generate/preview/publish issues from plan
 
-## Ideas / Backlog
+## 📋 Backlog
 - [ ] Benchmark mode: compare token spend with vs without vibeplan
 - [ ] Plugin system for custom question templates
 - [ ] Plan history and analytics
+- [ ] `vibeplan config` — get/set config values from CLI
+- [ ] `--model` flag for adapter model selection
 - [ ] Slack / Discord notifications on step completion

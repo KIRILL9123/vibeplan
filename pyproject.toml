@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "vibeplan"
-version = "0.1.0"
+version = "0.5.0"
 description = "Structured pre-planner for vibe coding sessions — plan first, ship faster, burn fewer tokens"
 readme = "README.md"
 license = {text = "MIT"}
