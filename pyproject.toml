@@ -1,0 +1,56 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "vibeplan"
+version = "0.1.0"
+description = "Structured pre-planner for vibe coding sessions — plan first, ship faster, burn fewer tokens"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+    {name = "Kyrylo", github = "KIRILL9123"},
+]
+keywords = ["vibe-coding", "ai-agent", "codex", "opencode", "antigravity", "token-budget", "developer-tools"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "typer>=0.12.0",
+    "rich>=13.0.0",
+    "gitpython>=3.1.40",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=4.1",
+    "ruff>=0.4.0",
+]
+
+[project.scripts]
+vibeplan = "vibeplan.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/KIRILL9123/vibeplan"
+Repository = "https://github.com/KIRILL9123/vibeplan"
+Issues = "https://github.com/KIRILL9123/vibeplan/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/vibeplan"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
