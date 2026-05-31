@@ -230,8 +230,6 @@ def _read() -> Optional[Dict]:
 
 
 def run_mcp_server() -> None:
-    _send({"jsonrpc": "2.0", "method": "initialize", "params": {"protocolVersion": "2024-11-05", "capabilities": {"tools": {}}}})
-
     while True:
         msg = _read()
         if msg is None:
@@ -241,7 +239,14 @@ def run_mcp_server() -> None:
         method = msg.get("method", "")
         params = msg.get("params", {})
 
-        if method == "tools/list":
+        if method == "initialize":
+            _send({"jsonrpc": "2.0", "id": msg_id, "result": {
+                "protocolVersion": "2024-11-05",
+                "capabilities": {"tools": {}},
+                "serverInfo": {"name": "vibeplan", "version": "0.5.0"},
+            }})
+
+        elif method == "tools/list":
             _send({"jsonrpc": "2.0", "id": msg_id, "result": {"tools": TOOL_DEFINITIONS}})
 
         elif method == "tools/call":

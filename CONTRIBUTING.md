@@ -34,15 +34,17 @@ ruff format src/
 5. Run `pytest` and `ruff check src/`
 6. Open a Pull Request
 
-## Ideas for Contributions
+## What to Work On
 
-- Agent adapters (OpenCode, Codex, Antigravity, Claude Code)
-- LLM-powered planner via OpenRouter
-- Token usage tracking and logging
-- Resume/rollback CLI commands
-- Web UI for plan visualization
-- MCP server integration
-- Additional question templates per task type
+See [docs/roadmap.md](docs/roadmap.md) for the backlog — pick any unstarted item.
+
+Ideas that are always welcome:
+- New agent adapters (Cursor, Windsurf, Continue, etc.)
+- New LLM providers or model presets
+- Benchmark mode (token comparison with/without vibeplan)
+- Plugin system for custom question templates
+- Plan history and analytics
+- Slack / Discord notifications
 
 ## Reporting Issues
 

@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 from typing import Dict
 
+from vibeplan import __version__
 from vibeplan.config import get_budget_path, get_config_path
 
 
@@ -19,7 +20,7 @@ def export_share(project_dir: Path) -> Path:
     config_data = json.loads(config_path.read_text(encoding="utf-8")) if config_path.exists() else {}
 
     share: Dict = {
-        "vibeplan_version": "0.5.0",
+        "vibeplan_version": __version__,
         "plan_md": plan_content,
         "budget": budget_data,
         "config": config_data,

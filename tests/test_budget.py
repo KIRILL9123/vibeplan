@@ -17,6 +17,7 @@ def test_save_budget(tmp_path: Path):
     assert len(data["steps"]) == 2
     assert data["steps"][0]["status"] == "pending"
     assert data["steps"][0]["spent"] == 0
+    assert data["steps"][0]["weight"] == 3
     assert data["original_prompt"] == "test task"
     assert data["answers"]["scope"] == "backend"
 
@@ -25,6 +26,7 @@ def test_calculate_budget_sum():
     steps = [{"id": str(i), "name": "implement"} for i in range(3)]
     budgeted = calculate_budget(9000, steps)
     assert sum(s["tokens"] for s in budgeted) <= 9000
+    assert all(s["weight"] == 5 for s in budgeted)
 
 
 def test_calculate_budget_implement_gets_most():
@@ -36,6 +38,9 @@ def test_calculate_budget_implement_gets_most():
     budgeted = calculate_budget(20000, steps)
     assert budgeted[1]["tokens"] >= budgeted[0]["tokens"]
     assert budgeted[1]["tokens"] >= budgeted[2]["tokens"]
+    assert budgeted[0]["weight"] == 3
+    assert budgeted[1]["weight"] == 5
+    assert budgeted[2]["weight"] == 2
 
 
 def test_redistribute_budget_noop_unlimited():

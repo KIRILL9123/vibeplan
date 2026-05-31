@@ -73,13 +73,6 @@ def run_plan(plan_path: Path, project_dir: Path) -> None:
     agent_name = config.get("agent")
     agent_config = config.get("agent_config", {})
 
-    adapter_cls = None
-    if agent_name:
-        adapter_cls = get_adapter(agent_name)
-        if adapter_cls and not adapter_cls.check_available():
-            console.print("[yellow]Agent '" + agent_name + "' not found on PATH. Falling back to manual mode.[/]")
-            adapter_cls = None
-
     for step in steps:
         if step.get("status") == "done":
             continue
@@ -87,6 +80,13 @@ def run_plan(plan_path: Path, project_dir: Path) -> None:
         sid = step["id"]
         name = step["name"]
         budget = step.get("tokens")
+
+        adapter_cls = None
+        if agent_name:
+            adapter_cls = get_adapter(agent_name)
+            if adapter_cls and not adapter_cls.check_available():
+                console.print("[yellow]Agent '" + agent_name + "' not found on PATH. Falling back to manual mode for step " + sid + ".[/]")
+                adapter_cls = None
 
         console.print("\n[bold blue]Step " + sid + ": " + name + "[/]")
         if budget:
@@ -116,7 +116,9 @@ def run_plan(plan_path: Path, project_dir: Path) -> None:
                 if action == "retry":
                     continue
                 elif action == "manual":
-                    adapter_cls = None
+                    console.print("\n[bold]Prompt for your AI agent:[/]")
+                    console.print(Panel(step_prompt, border_style="cyan"))
+                    console.print("[dim]Run your AI agent for this step, then press Enter.[/]")
                     Prompt.ask("[bold]Press Enter when agent finishes this step[/]")
                 elif action == "rollback":
                     rollback(project_dir, "vibeplan-step-" + sid + "-" + name)

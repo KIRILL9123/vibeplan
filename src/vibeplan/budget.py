@@ -30,6 +30,7 @@ def calculate_budget(total_budget: Optional[int], steps: List[Dict]) -> List[Dic
         allocated = int(total_budget * w / total_weight)
         step["tokens"] = allocated
         step["tokens_formatted"] = f"{allocated:,}"
+        step["weight"] = w
 
     return steps
 
@@ -45,6 +46,7 @@ def save_budget(budget_path: Path, steps: List[Dict], total: Optional[int], answ
                 "name": s.get("name"),
                 "description": s.get("description"),
                 "tokens": s.get("tokens"),
+                "weight": s.get("weight", 3),
                 "spent": 0,
                 "status": "pending",
             }

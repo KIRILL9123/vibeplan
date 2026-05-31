@@ -238,14 +238,6 @@ def export(
             export_lines.append(generate_step_prompt(prompt, answers, s))
             export_lines.append("")
 
-    for s in steps:
-        if s.get("status") != "done":
-            export_lines.append("---")
-            export_lines.append("")
-            export_lines.append(generate_step_prompt(prompt, answers, s))
-            export_lines.append("")
-            break
-
     export_content = "\n".join(export_lines)
 
     if output is None:

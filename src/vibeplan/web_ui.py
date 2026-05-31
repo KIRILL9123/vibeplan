@@ -114,10 +114,7 @@ def _render_html(data: Dict, plan_content: str, checkpoints: list) -> str:
 
 
 def run_web_server(project_dir: Path, port: int = 8080, open_browser: bool = True) -> None:
-    plan_content = ""
     plan_path = get_plan_path(project_dir)
-    if plan_path.exists():
-        plan_content = plan_path.read_text(encoding="utf-8")
 
     class Handler(http.server.BaseHTTPRequestHandler):
         def do_GET(self) -> None:
@@ -125,6 +122,7 @@ def run_web_server(project_dir: Path, port: int = 8080, open_browser: bool = Tru
             if parsed.path == "/" or parsed.path == "/index.html":
                 data = load_plan(project_dir)
                 checkpoints = list_checkpoints(project_dir)
+                plan_content = plan_path.read_text(encoding="utf-8") if plan_path.exists() else ""
                 html = _render_html(data, plan_content, checkpoints)
                 self.send_response(200)
                 self.send_header("Content-Type", "text/html; charset=utf-8")
