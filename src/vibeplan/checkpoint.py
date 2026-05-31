@@ -1,13 +1,13 @@
 """Git-based checkpoint manager for safe rollbacks."""
 import subprocess
 from pathlib import Path
+from typing import List
 from rich.console import Console
 
 console = Console()
 
 
 def ensure_git_repo(path: Path) -> bool:
-    """Return True if path is inside a git repository."""
     result = subprocess.run(
         ["git", "-C", str(path), "rev-parse", "--git-dir"],
         capture_output=True,
@@ -17,7 +17,6 @@ def ensure_git_repo(path: Path) -> bool:
 
 
 def create_snapshot(path: Path, step_id: str, step_name: str) -> str:
-    """Stage all changes and create a named git commit checkpoint."""
     commit_msg = f"vibeplan-step-{step_id}-{step_name}"
     subprocess.run(["git", "-C", str(path), "add", "-A"], capture_output=True)
     result = subprocess.run(
@@ -32,8 +31,7 @@ def create_snapshot(path: Path, step_id: str, step_name: str) -> str:
     return commit_msg
 
 
-def rollback(path: Path, commit_msg: str) -> bool:
-    """Roll back to the state before the given checkpoint commit."""
+def rollback_to_commit(path: Path, commit_msg: str) -> bool:
     result = subprocess.run(
         ["git", "-C", str(path), "log", "--oneline", "--grep", commit_msg, "-n", "1"],
         capture_output=True,
@@ -62,3 +60,52 @@ def rollback(path: Path, commit_msg: str) -> bool:
         console.print("[green]Rolled back to before " + commit_msg + "[/]")
         return True
     return False
+
+
+def list_checkpoints(path: Path) -> List[dict]:
+    result = subprocess.run(
+        ["git", "-C", str(path), "log", "--oneline", "--grep", "vibeplan-step-"],
+        capture_output=True,
+        text=True,
+    )
+    checkpoints = []
+    for line in result.stdout.strip().split("\n"):
+        if not line:
+            continue
+        parts = line.strip().split(" ", 1)
+        if len(parts) == 2:
+            commit_hash = parts[0]
+            msg = parts[1]
+            step_info = msg.replace("vibeplan-step-", "")
+            sid, sname = step_info.split("-", 1) if "-" in step_info else (step_info, "")
+            checkpoints.append({
+                "hash": commit_hash,
+                "step_id": sid,
+                "step_name": sname,
+                "message": msg,
+            })
+    return checkpoints
+
+
+def rollback_to_step(path: Path, step_id_or_name: str) -> bool:
+    checkpoints = list_checkpoints(path)
+    if not checkpoints:
+        console.print("[red]No vibeplan checkpoints found.[/]")
+        return False
+
+    target = None
+    for cp in checkpoints:
+        if cp["step_id"] == step_id_or_name or cp["step_name"] == step_id_or_name:
+            target = cp
+            break
+
+    if not target:
+        console.print("[red]No checkpoint found for step: " + step_id_or_name + "[/]")
+        console.print("[dim]Available steps: " + ", ".join(c["step_id"] + " (" + c["step_name"] + ")" for c in checkpoints) + "[/]")
+        return False
+
+    return rollback_to_commit(path, target["message"])
+
+
+def rollback(path: Path, commit_msg: str) -> bool:
+    return rollback_to_commit(path, commit_msg)

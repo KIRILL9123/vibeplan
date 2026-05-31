@@ -3,10 +3,15 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from vibeplan.budget import calculate_budget, save_budget
+from vibeplan.llm import (
+    LLMConfig,
+    build_planning_prompt,
+    chat_completion,
+    parse_llm_steps,
+)
 
 
-def generate_plan(answers: Dict, output_dir: Path) -> Path:
-    """Generate a vibeplan markdown + budget JSON."""
+def generate_plan(answers: Dict, output_dir: Path, llm_config: Optional[LLMConfig] = None) -> Path:
     prompt = answers["original_prompt"]
     scope = answers.get("scope", "fullstack")
     stack = answers.get("stack", "")
@@ -15,11 +20,18 @@ def generate_plan(answers: Dict, output_dir: Path) -> Path:
     budget_raw = answers.get("budget", "unlimited")
 
     total_budget = _parse_budget(budget_raw)
-    steps = _template_plan(prompt, scope, stack, constraints, quality)
+
+    if llm_config and llm_config.provider:
+        steps = _generate_llm_plan(prompt, answers, llm_config)
+        if not steps:
+            steps = _template_plan(prompt, scope, stack, constraints, quality)
+    else:
+        steps = _template_plan(prompt, scope, stack, constraints, quality)
+
     steps = calculate_budget(total_budget, steps)
 
     budget_path = output_dir / ".vibeplan" / "budget.json"
-    save_budget(budget_path, steps, total_budget)
+    save_budget(budget_path, steps, total_budget, answers)
 
     plan_md = _render_plan_md(prompt, answers, steps, total_budget)
     plan_path = output_dir / "plan.md"
@@ -28,8 +40,15 @@ def generate_plan(answers: Dict, output_dir: Path) -> Path:
     return plan_path
 
 
+def _generate_llm_plan(prompt: str, answers: Dict, llm_config: LLMConfig) -> Optional[List[Dict]]:
+    planning_prompt = build_planning_prompt(answers)
+    result = chat_completion(llm_config, "You are a senior software architect. Generate concise execution plans.", planning_prompt)
+    if not result.success:
+        return None
+    return parse_llm_steps(result.content)
+
+
 def _parse_budget(budget_raw: str) -> Optional[int]:
-    """Parse budget string like '20k', '50000', 'unlimited' into int or None."""
     if budget_raw.lower() in ("unlimited", "no", "n/a", "", "inf"):
         return None
     try:
@@ -39,7 +58,6 @@ def _parse_budget(budget_raw: str) -> Optional[int]:
 
 
 def _template_plan(prompt: str, scope: str, stack: str, constraints: str, quality: str) -> List[Dict]:
-    """Generate heuristic step plan based on task type classification."""
     prompt_lower = prompt.lower()
 
     is_bugfix = any(w in prompt_lower for w in ("fix", "bug", "repair", "broken", "crash", "error"))
@@ -68,7 +86,6 @@ def _template_plan(prompt: str, scope: str, stack: str, constraints: str, qualit
             {"id": "4", "name": "test", "description": "Full test suite run and manual verification"},
         ]
     else:
-        # Default: feature development
         return [
             {"id": "1", "name": "research", "description": "Explore codebase and choose architectural approach"},
             {"id": "2", "name": "setup", "description": "Install new dependencies if needed"},

@@ -60,3 +60,21 @@ def test_generate_plan_creates_files(tmp_path: Path):
     assert (tmp_path / ".vibeplan" / "budget.json").exists()
     content = plan_path.read_text()
     assert "add login page" in content
+
+
+def test_generate_plan_saves_answers(tmp_path: Path):
+    import json
+    import subprocess
+    subprocess.run(["git", "-C", str(tmp_path), "init"], capture_output=True)
+    answers = {
+        "original_prompt": "add login page",
+        "scope": "frontend",
+        "stack": "React",
+        "constraints": "none",
+        "quality": "MVP",
+        "budget": "unlimited",
+    }
+    generate_plan(answers, tmp_path)
+    budget_data = json.loads((tmp_path / ".vibeplan" / "budget.json").read_text())
+    assert budget_data["original_prompt"] == "add login page"
+    assert budget_data["answers"]["scope"] == "frontend"
